@@ -115,7 +115,7 @@ int process_request(char *rq, int fd){
         fclose(fp);
     }
     // argが"status"の時の処理
-    else if(strcmp(arg, "status") == 0){
+    else if(strcmp(arg + 2, "status") == 0){
         fp = fdopen(fd, "w");
         fprintf(fp, "Server started: %s", ctime(&server_start_time));
         fprintf(fp, "Total requests: %d\n", requests);
@@ -178,6 +178,8 @@ int main(int argc, char **argv){
     pthread_t worker;
     // threadの属性
     pthread_attr_t attr;
+    // mutex lock
+    pthread_mutex_t requests_lock = PTHREAD_MUTEX_INITIALIZER;
 
     if(argc == 1){
         // ファイルディスクリプタ -> openされたファイルは順番に配列に格納されている。その添字がファイルディスクリプタ
@@ -204,8 +206,12 @@ int main(int argc, char **argv){
         // 読み書き両方ができるファイルディスクリプタが返ってくる
         fd = accept(sock, NULL, NULL); 
         
+        // mutex lock
+        pthread_mutex_lock(&requests_lock);
         // グローバル変数でリクエスト数を管理
         requests++;
+        // mutex unlock
+        pthread_mutex_unlock(&requests_lock);
         
         // ファイルデスクリプタのポインタ用のメモリ確保
         fdptr = malloc(sizeof(int));

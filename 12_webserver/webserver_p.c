@@ -82,12 +82,18 @@ int cat_file(char *file, int fd){
         fclose(fpsock);
     }
 
-    return 0;
+    exit(0);
 }
 
 int process_request(char *rq, int fd){
     char cmd[BUFSIZ], arg[BUFSIZ];
     FILE *fp;
+    pid_t pid;
+
+    pid = fork();
+
+    if(pid != 0)
+        return 0;
 
     // 第二引数を第一引数にコピー
     strcpy(arg, "./");
@@ -115,7 +121,7 @@ int process_request(char *rq, int fd){
     else
         cat_file(arg, fd);
 
-    return 0;
+    exit(0);
 }
 
 
